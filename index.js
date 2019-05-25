@@ -77,10 +77,10 @@ function refreshDisruptions() {
     })
 }
 
-refreshDisruptions();
-setInterval(() => {
-    refreshDisruptions();
-}, 300000);
+// refreshDisruptions();
+// setInterval(() => {
+//     refreshDisruptions();
+// }, 300000);
 
 function getJSONFromURL(url) {
     return new Promise((resolve, reject) => {
@@ -97,10 +97,10 @@ function getJSONFromURL(url) {
 }
 
 
-function evaToObject(eva) {
+function evaToIfopt(eva) {
     return new Promise((resolve, reject) => {
         var results = [];
-        fs.createReadStream('D_Bahnhof_2017_09_cleaned.csv')
+        fs.createReadStream('./evaToIfopt.csv')
             .pipe(csv({
                 separator: ';'
             }))
@@ -116,8 +116,30 @@ function evaToObject(eva) {
     })
 }
 
+
+function ifoptToAss(ifopt) {
+    return new Promise((resolve, reject) => {
+        var results = [];
+        fs.createReadStream('./ifoptToAss.csv')
+            .pipe(csv({
+                separator: ';'
+            }))
+            .on('data', (data) => results.push(data))
+            .on('end', () => {
+                results.forEach(res => {
+                    if (res.IFOPT == ifopt) {
+                        resolve(res.ASS_NR)
+                    }
+                });
+                reject('undefined')
+            });
+    })
+}
+
 async function translateToEva() {
     tempObjs.forEach((tempFac, i) => {
         StaDa.getStationInfo(tempObjs[i].objectId).then((number) => {tempObjs[i].evaId = number});
     })
 }
+
+ifoptToAss("de:05315:12659").then(d => (console.log(d))).catch(e => {console.log(e)})
