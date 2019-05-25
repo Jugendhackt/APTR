@@ -3,6 +3,7 @@ const cors = require('cors');
 const bodyParser = require("body-parser");
 const curl = require("curl");
 const BrokenObject = require("./BrokenObject.js");
+const StaDa = require("./api/DB-StaDa.js");
 const port = 1337;
 
 
@@ -24,11 +25,12 @@ app.get('/', function (req, res) {
 
 /*** CRAWLER ***/
 var brokenObjects = [];
+var tempObjs = [];
 
 function refreshDisruptions() {
     getJSONFromURL("https://elescore.de/api/disruptions")
-    .then((data) => {
-        var tempObjs = [];
+    .then(async function(data) {
+        tempObjs = [];
 
         data.forEach(facility => {
             objectAttributes = {
@@ -42,6 +44,9 @@ function refreshDisruptions() {
 
             tempObjs.push(new BrokenObject(objectAttributes));
         })
+
+        await translateToEva();
+        brokenObjects = tempObjs;
     })
     .catch(e => {
         console.log(e);
@@ -64,5 +69,11 @@ function getJSONFromURL(url) {
             }
         });
 
+    })
+}
+
+async function translateToEva() {
+    tempObjs.forEach((tempFac, i) => {
+        StaDa.getStationInfo(tempObjs[i].objectId).then((number) => {tempObjs[i].evaId = number});
     })
 }

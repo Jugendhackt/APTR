@@ -6,6 +6,11 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "dependencies": {
+    "express": "4.17.0",
+    "cors": "2.8.5",
+    "curl": "0.1.4"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Jugendhackt/APTR-Elescore-IFOPTifier.git"
