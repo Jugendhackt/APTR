@@ -154,7 +154,7 @@ function ifoptToAss(ifopt) {
 
 async function addNumbers() {
     tempObjs.forEach((tempFac, i) => {
-        StaDa.getStationInfo(tempObjs[i].objectId).then((number) => {
+        StaDa.getStationInfo(tempObjs[i].objectId, i).then((number) => {
             tempObjs[i].evaId = number
             evaToIfopt(number).then(ifopt => {
                 tempObjs[i].ifopt = ifopt
