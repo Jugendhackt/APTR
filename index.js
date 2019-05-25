@@ -2,6 +2,8 @@ const express = require("express");
 const cors = require('cors');
 const bodyParser = require("body-parser");
 const curl = require("curl");
+const csv = require('csv-parser')
+const fs = require('fs')
 const BrokenObject = require("./BrokenObject.js");
 const port = 1337;
 
@@ -15,7 +17,7 @@ app.use(bodyParser.json());
 
 app.listen(port, function () {
     console.log('API listening on Port ' + port);
-    console.log('It is available at http://localhost:'+port);
+    console.log('It is available at http://localhost:' + port);
 })
 
 app.get('/', function (req, res) {
@@ -31,7 +33,7 @@ app.get('/getAllDisruptions', function (req, res) {
 app.get('/objectIsDisrupted/:objectId', function (req, res) {
     console.log(req.params.objectId);
     brokenObjects.forEach(obj => {
-        if(obj.objectId == req.params.objectId) {
+        if (obj.objectId == req.params.objectId) {
             res.send(JSON.stringify(obj))
         }
     })
@@ -49,27 +51,27 @@ var brokenObjects = [];
 
 function refreshDisruptions() {
     getJSONFromURL("https://elescore.de/api/disruptions")
-    .then((data) => {
-        var tempObjs = [];
+        .then((data) => {
+            var tempObjs = [];
 
-        data.forEach(facility => {
-            objectAttributes = {
-                objectId: facility.objectId.substring(3, facility.objectId.length),
-                reason: facility.reason,
-                occurredOn: facility.occurredOn,
-                updatedOn: facility.updatedOn,
-                resolvedOn: facility.resolvedOn,
-                duration: facility.duration
-            }
+            data.forEach(facility => {
+                objectAttributes = {
+                    objectId: facility.objectId.substring(3, facility.objectId.length),
+                    reason: facility.reason,
+                    occurredOn: facility.occurredOn,
+                    updatedOn: facility.updatedOn,
+                    resolvedOn: facility.resolvedOn,
+                    duration: facility.duration
+                }
 
-            tempObjs.push(new BrokenObject(objectAttributes));
+                tempObjs.push(new BrokenObject(objectAttributes));
+            })
+
+            brokenObjects = tempObjs;
         })
-
-        brokenObjects = tempObjs;
-    })
-    .catch(e => {
-        console.log(e);
-    })
+        .catch(e => {
+            console.log(e);
+        })
 }
 
 refreshDisruptions();
@@ -79,8 +81,8 @@ setInterval(() => {
 
 function getJSONFromURL(url) {
     return new Promise((resolve, reject) => {
-        curl.getJSON(url, {}, function(err, response, data){
-            if(err == null) {
+        curl.getJSON(url, {}, function (err, response, data) {
+            if (err == null) {
                 resolve(data);
             }
             else {
@@ -88,5 +90,25 @@ function getJSONFromURL(url) {
             }
         });
 
+    })
+}
+
+
+function evaToObject(eva) {
+    return new Promise((resolve, reject) => {
+        var results = [];
+        fs.createReadStream('D_Bahnhof_2017_09_cleaned.csv')
+            .pipe(csv({
+                separator: ';'
+            }))
+            .on('data', (data) => results.push(data))
+            .on('end', () => {
+                results.forEach(res => {
+                    if (res.EVA_NR == eva) {
+                        resolve(res.IFOPT)
+                    }
+                });
+                reject('undefined')
+            });
     })
 }
