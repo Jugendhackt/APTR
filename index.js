@@ -32,6 +32,19 @@ app.get('/getAllDisruptions', function (req, res) {
     res.status(200).end();
 });
 
+
+app.get('/getAllDisruptionsWithAss', function (req, res) {
+    res.set('Content-Type', 'application/json');
+    var ret = []
+    brokenObjects.forEach(obj => {
+        if(obj.ass != undefined) {
+            ret.push(obj);
+        }
+    })
+    res.send(JSON.stringify(ret));
+    res.status(200).end();
+});
+
 app.get('/objectIsDisrupted/:objectId', function (req, res) {
     console.log(req.params.objectId);
     brokenObjects.forEach(obj => {
@@ -72,7 +85,7 @@ function refreshDisruptions() {
             tempObjs.push(new BrokenObject(objectAttributes));
         })
 
-        await translateToEva();
+        await addNumbers();
         brokenObjects = tempObjs;
     })
     .catch(e => {
@@ -100,10 +113,10 @@ function getJSONFromURL(url) {
 }
 
 
-function evaToObject(eva) {
+function evaToIfopt(eva) {
     return new Promise((resolve, reject) => {
         var results = [];
-        fs.createReadStream('D_Bahnhof_2017_09_cleaned.csv')
+        fs.createReadStream('./evaToIfopt.csv')
             .pipe(csv({
                 separator: ';'
             }))
@@ -119,8 +132,39 @@ function evaToObject(eva) {
     })
 }
 
-async function translateToEva() {
+
+function ifoptToAss(ifopt) {
+    return new Promise((resolve, reject) => {
+        var results = [];
+        fs.createReadStream('./ifoptToAss.csv')
+            .pipe(csv({
+                separator: ';'
+            }))
+            .on('data', (data) => results.push(data))
+            .on('end', () => {
+                results.forEach(res => {
+                    if (res.IFOPT == ifopt) {
+                        resolve(res.ASS_NR)
+                    }
+                });
+                reject('undefined')
+            });
+    })
+}
+
+async function addNumbers() {
     tempObjs.forEach((tempFac, i) => {
-        StaDa.getStationInfo(tempObjs[i].objectId, i).then((number) => {tempObjs[i].evaId = number});
+        StaDa.getStationInfo(tempObjs[i].objectId, i).then((number) => {
+            tempObjs[i].evaId = number
+            evaToIfopt(number).then(ifopt => {
+                tempObjs[i].ifopt = ifopt
+                ifoptToAss(ifopt).then(ass => {
+                    tempObjs[i].ass = parseInt(ass)
+                })
+                .catch(e => {console.log(e)})
+            })
+            .catch(e => {console.log(e)})
+        })
+        .catch(e => {console.log(e)})
     })
 }
