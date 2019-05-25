@@ -32,6 +32,19 @@ app.get('/getAllDisruptions', function (req, res) {
     res.status(200).end();
 });
 
+
+app.get('/getAllDisruptionsWithAss', function (req, res) {
+    res.set('Content-Type', 'application/json');
+    var ret = []
+    brokenObjects.forEach(obj => {
+        if(obj.ass != undefined) {
+            ret.push(obj);
+        }
+    })
+    res.send(JSON.stringify(ret));
+    res.status(200).end();
+});
+
 app.get('/objectIsDisrupted/:objectId', function (req, res) {
     console.log(req.params.objectId);
     brokenObjects.forEach(obj => {
@@ -72,7 +85,7 @@ function refreshDisruptions() {
             tempObjs.push(new BrokenObject(objectAttributes));
         })
 
-        await translateToEva();
+        await addNumbers();
         brokenObjects = tempObjs;
     })
     .catch(e => {
@@ -80,10 +93,10 @@ function refreshDisruptions() {
     })
 }
 
-// refreshDisruptions();
-// setInterval(() => {
-//     refreshDisruptions();
-// }, 300000);
+refreshDisruptions();
+setInterval(() => {
+    refreshDisruptions();
+}, 300000);
 
 function getJSONFromURL(url) {
     return new Promise((resolve, reject) => {
@@ -139,10 +152,19 @@ function ifoptToAss(ifopt) {
     })
 }
 
-async function translateToEva() {
+async function addNumbers() {
     tempObjs.forEach((tempFac, i) => {
-        StaDa.getStationInfo(tempObjs[i].objectId).then((number) => {tempObjs[i].evaId = number});
+        StaDa.getStationInfo(tempObjs[i].objectId).then((number) => {
+            tempObjs[i].evaId = number
+            evaToIfopt(number).then(ifopt => {
+                tempObjs[i].ifopt = ifopt
+                ifoptToAss(ifopt).then(ass => {
+                    tempObjs[i].ass = parseInt(ass)
+                })
+                .catch(e => {console.log(e)})
+            })
+            .catch(e => {console.log(e)})
+        })
+        .catch(e => {console.log(e)})
     })
 }
-
-ifoptToAss("de:05315:12659").then(d => (console.log(d))).catch(e => {console.log(e)})
