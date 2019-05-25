@@ -121,6 +121,6 @@ function evaToObject(eva) {
 
 async function translateToEva() {
     tempObjs.forEach((tempFac, i) => {
-        StaDa.getStationInfo(tempObjs[i].objectId).then((number) => {tempObjs[i].evaId = number});
+        StaDa.getStationInfo(tempObjs[i].objectId, i).then((number) => {tempObjs[i].evaId = number});
     })
 }
