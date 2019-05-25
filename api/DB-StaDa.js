@@ -18,6 +18,7 @@ exports.getStationInfo = function(id) {
                 try {
                     resolve(JSON.parse(body).result[0].evaNumbers[0].number);
                 } catch (e) {
+                    console.log(JSON.parse(body));
                     reject(e);
                 }
             }
