@@ -16,10 +16,32 @@ app.use(bodyParser.json());
 
 app.listen(port, function () {
     console.log('API listening on Port ' + port);
+    console.log('It is available at http://localhost:'+port);
 })
 
 app.get('/', function (req, res) {
     res.send("API-Schnittstelle");
+    res.status(200).end();
+});
+
+app.get('/getAllDisruptions', function (req, res) {
+    res.send(JSON.stringify(brokenObjects))
+    res.status(200).end();
+});
+
+app.get('/objectIsDisrupted/:objectId', function (req, res) {
+    console.log(req.params.objectId);
+    brokenObjects.forEach(obj => {
+        if(obj.objectId == req.params.objectId) {
+            res.send(JSON.stringify(obj))
+        }
+    })
+    res.send(JSON.stringify({}))
+    res.status(200).end();
+})
+
+app.get('/getDisruptionCount', function (req, res) {
+    res.send(brokenObjects.length + "");
     res.status(200).end();
 });
 
