@@ -5,6 +5,7 @@ const curl = require("curl");
 const csv = require('csv-parser')
 const fs = require('fs')
 const BrokenObject = require("./BrokenObject.js");
+const StaDa = require("./api/DB-StaDa.js");
 const port = 1337;
 
 
@@ -48,30 +49,32 @@ app.get('/getDisruptionCount', function (req, res) {
 
 /*** CRAWLER ***/
 var brokenObjects = [];
+var tempObjs = [];
 
 function refreshDisruptions() {
     getJSONFromURL("https://elescore.de/api/disruptions")
-        .then((data) => {
-            var tempObjs = [];
+    .then(async function(data) {
+        tempObjs = [];
 
-            data.forEach(facility => {
-                objectAttributes = {
-                    objectId: facility.objectId.substring(3, facility.objectId.length),
-                    reason: facility.reason,
-                    occurredOn: facility.occurredOn,
-                    updatedOn: facility.updatedOn,
-                    resolvedOn: facility.resolvedOn,
-                    duration: facility.duration
-                }
+        data.forEach(facility => {
+            objectAttributes = {
+                objectId: facility.objectId.substring(3, facility.objectId.length),
+                reason: facility.reason,
+                occurredOn: facility.occurredOn,
+                updatedOn: facility.updatedOn,
+                resolvedOn: facility.resolvedOn,
+                duration: facility.duration
+            }
 
-                tempObjs.push(new BrokenObject(objectAttributes));
-            })
-
-            brokenObjects = tempObjs;
+            tempObjs.push(new BrokenObject(objectAttributes));
         })
-        .catch(e => {
-            console.log(e);
-        })
+
+        await translateToEva();
+        brokenObjects = tempObjs;
+    })
+    .catch(e => {
+        console.log(e);
+    })
 }
 
 refreshDisruptions();
@@ -110,5 +113,11 @@ function evaToObject(eva) {
                 });
                 reject('undefined')
             });
+    })
+}
+
+async function translateToEva() {
+    tempObjs.forEach((tempFac, i) => {
+        StaDa.getStationInfo(tempObjs[i].objectId).then((number) => {tempObjs[i].evaId = number});
     })
 }
