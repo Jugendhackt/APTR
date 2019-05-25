@@ -25,7 +25,8 @@ app.get('/', function (req, res) {
 });
 
 app.get('/getAllDisruptions', function (req, res) {
-    res.send(JSON.stringify(brokenObjects))
+    res.set('Content-Type', 'application/json');
+    res.send(JSON.stringify(brokenObjects));
     res.status(200).end();
 });
 
@@ -36,11 +37,13 @@ app.get('/objectIsDisrupted/:objectId', function (req, res) {
             res.send(JSON.stringify(obj))
         }
     })
+    res.set('Content-Type', 'application/json');
     res.send(JSON.stringify({}))
     res.status(200).end();
 })
 
 app.get('/getDisruptionCount', function (req, res) {
+    res.set('Content-Type', 'application/json');
     res.send(brokenObjects.length + "");
     res.status(200).end();
 });
