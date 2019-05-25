@@ -1,0 +1,19 @@
+{
+  "name": "aptr-api",
+  "version": "1.0.0",
+  "description": "A service to supply data about accessibility to routing",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jugendhackt/APTR-Elescore-IFOPTifier.git"
+  },
+  "author": "",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/Jugendhackt/APTR-Elescore-IFOPTifier/issues"
+  },
+  "homepage": "https://github.com/Jugendhackt/APTR-Elescore-IFOPTifier#readme"
+}
